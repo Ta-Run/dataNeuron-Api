@@ -1,7 +1,7 @@
 import express from "express";
 import cors from 'cors'
 import cookieParser from "cookie-parser";
-import user from "./routes/user.routes.js";
+import todo from "./routes/todos.routes.js";
 const app = express()
 
 app.use(cors({
@@ -14,6 +14,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-app.use(process.env.BASE_URL, user)
+app.use('/api/v1/todo/', todo)
 
 export { app }
