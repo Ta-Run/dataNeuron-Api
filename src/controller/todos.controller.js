@@ -1,21 +1,20 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-// import { ApiError } from "../utils/apiError.js"
-import {Todo} from "../models/todos.model.js"
-// import { ApiResponse } from "../utils/apiResponse.js";
-
+import { Todo } from "../models/todos.model.js";
+import { Count } from "../models/counter.model.js";
 
 const addTodo = asyncHandler(async (req, res) => {
     const { title, description, category } = req.body;
 
     // Find an existing todo for the same category
     let existingTodo = await Todo.findOne({ category });
+    await Count.findOneAndUpdate({}, { $inc: { addTodoCount: 1 } });
 
     if (existingTodo) {
         // Update the existing todo
         existingTodo.title = title;
         existingTodo.description = description;
         await existingTodo.save();
-        res.status(200).json({ success: true, message: 'Todo updated successfully', data: existingTodo });
+        return res.status(200).json({ success: true, message: 'Todo updated successfully', data: existingTodo });
     } else {
         // Create a new todo
         const newTodo = new Todo({
@@ -24,30 +23,51 @@ const addTodo = asyncHandler(async (req, res) => {
             category
         });
         await newTodo.save();
-        res.status(201).json({ success: true, message: 'Todo created successfully', data: newTodo });
+        return res.status(201).json({ success: true, message: 'Todo created successfully', data: newTodo });
     }
 });
 
+const updateTodo = asyncHandler(async (req, res) => {
+    const { title, description, category } = req.body;
+    const todoId = req.params.todoId; // Assuming todoId is passed as a URL parameter
 
-const getTodo=asyncHandler(async (req, res) => {
-    
     try {
-        
-        const data = await Todo.find()
+        // Find an existing todo for the specified category and ID
+        let existingTodo = await Todo.findOne({ _id: todoId, category });
 
-         res.status(200).json({
-            message:"Success",
-            result:data
-         })
+        if (existingTodo) {
+            // Update the existing todo
+            existingTodo.title = title;
+            existingTodo.description = description;
+            await existingTodo.save();
+            return res.status(200).json({ success: true, message: 'Todo updated successfully', data: existingTodo });
+        } else {
+            // If no existing todo is found, return an error
+            return res.status(404).json({ success: false, message: 'Todo not found for the specified category and ID' });
+        }
     } catch (error) {
-        res.status(500).json({
-            message:error.message,
-            
-         })
+        // Handle any errors that occur during the update process
+        console.error("Error updating todo:", error.message);
+        return res.status(500).json({ success: false, message: 'Failed to update todo', error: error.message });
     }
 });
 
+const getTodo = asyncHandler(async (req, res) => {
+    try {
+        const data = await Todo.find();
+        return res.status(200).json({ message: "Success", result: data });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+});
 
+const getTodoCounts = asyncHandler(async (req, res) => {
+    try {
+        const counts = await Count.findOne();
+        return res.status(200).json({ success: true, data: counts });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
 
-
-export { addTodo,getTodo }
+export { addTodo, getTodo, updateTodo, getTodoCounts };
