@@ -70,4 +70,15 @@ const getTodoCounts = asyncHandler(async (req, res) => {
     }
 });
 
-export { addTodo, getTodo, updateTodo, getTodoCounts };
+
+const getCategories = async (req, res) => {
+    try {
+      // Retrieve categories from the enum property of the schema
+      const categories = Todo.schema.path('category').enumValues;
+      res.status(200).json(categories);
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  };
+export { addTodo, getTodo, updateTodo, getTodoCounts,getCategories };
