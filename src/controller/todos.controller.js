@@ -7,8 +7,8 @@ const addTodo = asyncHandler(async (req, res) => {
 
     // Find an existing todo for the same category
     let existingTodo = await Todo.findOne({ category });
-    await Count.findOneAndUpdate({}, { $inc: { addTodoCount: 1 } });
-
+    const countValue = await Count.findOneAndUpdate({}, { $inc: { addTodoCount: 1 } },{ upsert: true, new: true });
+    
     if (existingTodo) {
         // Update the existing todo
         existingTodo.title = title;
@@ -30,6 +30,7 @@ const addTodo = asyncHandler(async (req, res) => {
 const updateTodo = asyncHandler(async (req, res) => {
     const { title, description, category } = req.body;
     const todoId = req.params.todoId; // Assuming todoId is passed as a URL parameter
+    const countValue = await Count.findOneAndUpdate({}, { $inc: { addTodoCount: 1 } },{ upsert: true, new: true });
 
     try {
         // Find an existing todo for the specified category and ID
